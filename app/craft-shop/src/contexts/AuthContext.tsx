@@ -19,26 +19,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  // Simulated login function
+  // Login function using backend API
   const login = async (email: string, password: string) => {
-    // In a real app, this would make an API call
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        // Basic validation for demo
-        if (email && password.length >= 6) {
-          setUser({
-            id: "user1",
-            name: email.split('@')[0],
-            email: email,
-            role: "user"
-          });
-          setIsAdmin(false);
-          resolve();
-        } else {
-          reject(new Error("Invalid credentials"));
-        }
-      }, 1000);
+    const res = await fetch("http://localhost:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Login failed");
+    }
+    setUser({
+      id: data.user?.email || email, // Use email as id fallback
+      name: data.user?.email?.split("@")[0] || email.split("@")[0],
+      email: data.user?.email || email,
+      role: "user"
+    });
+    setIsAdmin(false);
   };
 
   // Simulated admin login function
@@ -63,24 +61,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  // Simulated register function
+  // Register function using backend API
   const register = async (name: string, email: string, password: string) => {
-    // In a real app, this would make an API call
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        // Basic validation for demo
-        if (name && email && password.length >= 6) {
-          setUser({
-            id: "user1",
-            name: name,
-            email: email,
-            role: "user"
-          });
-          resolve();
-        } else {
-          reject(new Error("Invalid information"));
-        }
-      }, 1000);
+    const res = await fetch("http://localhost:5000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }), // Only email and password needed by backend
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Registration failed");
+    }
+    setUser({
+      id: data.user?.email || email,
+      name: name,
+      email: data.user?.email || email,
+      role: "user"
     });
   };
 
